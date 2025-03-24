@@ -14,14 +14,9 @@ employeeRoutes.get("/", auth, getEmployees);
 
 employeeRoutes.get("/:id", auth, getEmployeeById);
 
-employeeRoutes.post("/", auth, upload.single("profilePicture"), createEmployee);
+employeeRoutes.post("/", auth, upload.single("profileImage"), createEmployee);
 
-employeeRoutes.put(
-  "/:id",
-  auth,
-  upload.single("profilePicture"),
-  updateEmployee
-);
+employeeRoutes.put("/:id", auth, upload.single("profileImage"), updateEmployee);
 
 employeeRoutes.delete("/:id", auth, deleteEmployee);
 
