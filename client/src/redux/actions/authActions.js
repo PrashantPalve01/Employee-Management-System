@@ -37,7 +37,6 @@ export const register = (userData) => async (dispatch) => {
 };
 
 export const login = (userData) => async (dispatch) => {
-  console.log("prasahnt", userData);
   try {
     dispatch({ type: LOGIN_REQUEST });
 

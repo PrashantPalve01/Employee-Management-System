@@ -4,7 +4,6 @@ const API_URL =
   import.meta.env.VITE_BASE_URL ||
   "https://employee-management-system-backend-v15m.onrender.com";
 
-console.log("url", API_URL);
 const api = axios.create({
   baseURL: API_URL,
   headers: {
