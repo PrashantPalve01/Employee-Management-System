@@ -15,7 +15,7 @@ app.use(express.json());
 // MongoDB Connection
 connectDB();
 
-app.use("/", (req, res) => {
+app.get("/", (req, res) => {
   res.json({ message: "API is working fine.." });
 });
 
