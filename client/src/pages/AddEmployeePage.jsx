@@ -49,7 +49,6 @@ const AddEmployeePage = () => {
       [name]: value,
     });
 
-    // Clear error for this field if exists
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -64,7 +63,6 @@ const AddEmployeePage = () => {
     if (file) {
       setProfileImage(file);
 
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result);
@@ -124,7 +122,6 @@ const AddEmployeePage = () => {
         },
       };
 
-      console.log("Submitting:", employeeData);
       dispatch(createEmployee(employeeData));
     }
   };
@@ -186,14 +183,12 @@ const AddEmployeePage = () => {
             <form className="divide-y divide-gray-200" onSubmit={handleSubmit}>
               <div className="py-8 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Basic Information */}
                   <div className="col-span-1 md:col-span-2">
                     <h3 className="text-lg font-medium text-gray-900">
                       Basic Information
                     </h3>
                   </div>
 
-                  {/* Name */}
                   <div className="col-span-1">
                     <label className="block text-sm font-medium text-gray-700">
                       Full Name *
@@ -211,8 +206,6 @@ const AddEmployeePage = () => {
                       <p className="mt-1 text-sm text-red-600">{errors.name}</p>
                     )}
                   </div>
-
-                  {/* Email */}
                   <div className="col-span-1">
                     <label className="block text-sm font-medium text-gray-700">
                       Email *

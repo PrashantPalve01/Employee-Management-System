@@ -1,4 +1,3 @@
-// Auth action types
 export const REGISTER_REQUEST = "REGISTER_REQUEST";
 export const REGISTER_SUCCESS = "REGISTER_SUCCESS";
 export const REGISTER_FAIL = "REGISTER_FAIL";
@@ -12,7 +11,6 @@ export const LOGOUT = "LOGOUT";
 export const AUTH_ERROR = "AUTH_ERROR";
 export const CLEAR_ERRORS = "CLEAR_ERRORS";
 
-// Employee action types
 export const GET_EMPLOYEES_REQUEST = "GET_EMPLOYEES_REQUEST";
 export const GET_EMPLOYEES_SUCCESS = "GET_EMPLOYEES_SUCCESS";
 export const GET_EMPLOYEES_FAIL = "GET_EMPLOYEES_FAIL";

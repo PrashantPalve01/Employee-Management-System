@@ -21,11 +21,7 @@ const LoginForm = () => {
   const { email, password, role } = formData;
   useEffect(() => {
     if (isAuthenticated && formSubmitted && user) {
-      // if (user.role === "admin") {
       navigate("/dashboard");
-      // } else {
-      //   navigate("/employee/dashboard");
-      // }
     }
   }, [isAuthenticated, navigate, formSubmitted, user]);
 

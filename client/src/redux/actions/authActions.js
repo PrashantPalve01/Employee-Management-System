@@ -7,7 +7,6 @@ import {
   LOGIN_SUCCESS,
   LOGIN_FAIL,
   LOGOUT,
-  AUTH_ERROR,
   CLEAR_ERRORS,
 } from "../types";
 
@@ -37,7 +36,6 @@ export const register = (userData) => async (dispatch) => {
   }
 };
 
-// Login user
 export const login = (userData) => async (dispatch) => {
   try {
     dispatch({ type: LOGIN_REQUEST });
@@ -65,12 +63,10 @@ export const login = (userData) => async (dispatch) => {
   }
 };
 
-// Logout user
 export const logout = () => (dispatch) => {
   dispatch({ type: LOGOUT });
 };
 
-// Clear errors
 export const clearErrors = () => (dispatch) => {
   dispatch({ type: CLEAR_ERRORS });
 };

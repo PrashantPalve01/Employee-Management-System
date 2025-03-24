@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_BASE_RUL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_BASE_RUL;
 
 const api = axios.create({
   baseURL: API_URL,
@@ -25,24 +25,19 @@ export const employeeService = {
     return api.get(`/employees?page=${page}&limit=${limit}&search=${search}`);
   },
 
-  // Get employee by ID
   getEmployee: (id) => {
     return api.get(`/employees/${id}`);
   },
 
-  // Create new employee
   createEmployee: (employeeData) => {
-    // For form data with file upload
     const formData = new FormData();
 
-    // Append employee data
     Object.keys(employeeData).forEach((key) => {
       if (key !== "profileImage") {
         formData.append(key, employeeData[key]);
       }
     });
 
-    // Append profile image if exists
     if (employeeData.profileImage) {
       formData.append("profileImage", employeeData.profileImage);
     }
@@ -54,19 +49,15 @@ export const employeeService = {
     });
   },
 
-  // Update employee
   updateEmployee: (id, employeeData) => {
-    // For form data with file upload
     const formData = new FormData();
 
-    // Append employee data
     Object.keys(employeeData).forEach((key) => {
       if (key !== "profileImage") {
         formData.append(key, employeeData[key]);
       }
     });
 
-    // Append profile image if exists
     if (employeeData.profileImage) {
       formData.append("profileImage", employeeData.profileImage);
     }
@@ -78,13 +69,11 @@ export const employeeService = {
     });
   },
 
-  // Delete employee
   deleteEmployee: (id) => {
     return api.delete(`/employees/${id}`);
   },
 };
 
-// Auth API services
 export const authService = {
   login: (credentials) => {
     return api.post("/auth/login", credentials);

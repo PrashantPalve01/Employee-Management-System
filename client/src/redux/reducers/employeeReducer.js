@@ -1,4 +1,3 @@
-// redux/reducers/employeeReducer.js
 import {
   GET_EMPLOYEES_REQUEST,
   GET_EMPLOYEES_SUCCESS,
@@ -39,7 +38,6 @@ const initialState = {
 
 export const employeeReducer = (state = initialState, action) => {
   switch (action.type) {
-    // Get all employees
     case GET_EMPLOYEES_REQUEST:
       return {
         ...state,
@@ -62,7 +60,6 @@ export const employeeReducer = (state = initialState, action) => {
         error: action.payload,
       };
 
-    // Get single employee
     case GET_EMPLOYEE_REQUEST:
       return {
         ...state,
@@ -82,7 +79,6 @@ export const employeeReducer = (state = initialState, action) => {
         error: action.payload,
       };
 
-    // Create employee
     case CREATE_EMPLOYEE_REQUEST:
       return {
         ...state,
@@ -105,7 +101,6 @@ export const employeeReducer = (state = initialState, action) => {
         success: false,
       };
 
-    // Update employee
     case UPDATE_EMPLOYEE_REQUEST:
       return {
         ...state,
@@ -131,7 +126,6 @@ export const employeeReducer = (state = initialState, action) => {
         success: false,
       };
 
-    // Delete employee
     case DELETE_EMPLOYEE_REQUEST:
       return {
         ...state,
@@ -156,7 +150,6 @@ export const employeeReducer = (state = initialState, action) => {
         deleted: false,
       };
 
-    // Upload image
     case UPLOAD_IMAGE_REQUEST:
       return {
         ...state,
@@ -176,21 +169,18 @@ export const employeeReducer = (state = initialState, action) => {
         error: action.payload,
       };
 
-    // Search employees (client-side filtering if needed)
     case SEARCH_EMPLOYEES:
       return {
         ...state,
         searchTerm: action.payload,
       };
 
-    // Set current page
     case SET_CURRENT_PAGE:
       return {
         ...state,
         currentPage: action.payload,
       };
 
-    // Clear errors
     case CLEAR_ERRORS:
       return {
         ...state,

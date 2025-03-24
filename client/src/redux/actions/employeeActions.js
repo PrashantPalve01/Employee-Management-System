@@ -24,7 +24,6 @@ import {
 } from "../types";
 import { employeeService } from "../../services/api";
 
-// Get all employees with pagination and search
 export const getEmployees =
   (page = 1, limit = 10, search = "") =>
   async (dispatch) => {
@@ -44,14 +43,12 @@ export const getEmployees =
     }
   };
 
-// Get employee by ID
 export const getEmployeeById = (id) => async (dispatch) => {
   try {
     dispatch({ type: GET_EMPLOYEE_REQUEST });
 
     const { data } = await employeeService.getEmployee(id);
 
-    console.log("asdasd", data.data);
     dispatch({
       type: GET_EMPLOYEE_SUCCESS,
       payload: data.data,
@@ -86,20 +83,16 @@ export const createEmployee = (employeeData) => async (dispatch) => {
   }
 };
 
-// Update employee
 export const updateEmployee = (id, employeeData) => async (dispatch) => {
   try {
     dispatch({ type: UPDATE_EMPLOYEE_REQUEST });
 
-    // Create FormData for file upload
     const formData = new FormData();
 
-    // Append employee data to FormData
     Object.keys(employeeData).forEach((key) => {
       if (key === "profileImage" && employeeData[key] instanceof File) {
         formData.append(key, employeeData[key]);
       } else if (key === "address" || key === "emergencyContact") {
-        // Handle nested objects
         Object.keys(employeeData[key]).forEach((nestedKey) => {
           formData.append(`${key}[${nestedKey}]`, employeeData[key][nestedKey]);
         });
@@ -121,17 +114,16 @@ export const updateEmployee = (id, employeeData) => async (dispatch) => {
       payload: data.data,
     });
 
-    return data.data; // Return updated employee for redirect
+    return data.data;
   } catch (error) {
     dispatch({
       type: UPDATE_EMPLOYEE_FAIL,
       payload: error.response?.data?.message || "Failed to update employee",
     });
-    throw error; // Re-throw for component handling
+    throw error;
   }
 };
 
-// Delete employee
 export const deleteEmployee = (id) => async (dispatch) => {
   try {
     dispatch({ type: DELETE_EMPLOYEE_REQUEST });
@@ -150,7 +142,6 @@ export const deleteEmployee = (id) => async (dispatch) => {
   }
 };
 
-// Upload image (standalone function if needed separately)
 export const uploadImage = (file) => async (dispatch) => {
   try {
     dispatch({ type: UPLOAD_IMAGE_REQUEST });
@@ -185,19 +176,16 @@ export const uploadImage = (file) => async (dispatch) => {
   }
 };
 
-// Search employees (client-side filtering - optional if server-side search isn't enough)
 export const searchEmployees = (searchTerm) => ({
   type: SEARCH_EMPLOYEES,
   payload: searchTerm,
 });
 
-// Set current page for pagination
 export const setCurrentPage = (page) => ({
   type: SET_CURRENT_PAGE,
   payload: page,
 });
 
-// Clear errors
 export const clearErrors = () => ({
   type: CLEAR_ERRORS,
 });

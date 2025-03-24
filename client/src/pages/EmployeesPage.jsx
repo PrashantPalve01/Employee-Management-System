@@ -82,7 +82,6 @@ const EmployeesPage = () => {
                 </form>
               </div>
 
-              {/* Delete Confirmation Modal */}
               {confirmDelete && (
                 <div className="fixed z-10 inset-0 overflow-y-auto">
                   <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -145,7 +144,6 @@ const EmployeesPage = () => {
                 </div>
               )}
 
-              {/* Error Message */}
               {error && (
                 <div className="rounded-md bg-red-50 p-4 mb-6">
                   <div className="flex">
@@ -175,7 +173,6 @@ const EmployeesPage = () => {
                 </div>
               )}
 
-              {/* Loading Indicator */}
               {loading ? (
                 <div className="flex justify-center items-center h-64">
                   <svg
@@ -249,7 +246,6 @@ const EmployeesPage = () => {
                 </div>
               ) : (
                 <>
-                  {/* Employee Table */}
                   <div className="flex flex-col">
                     <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                       <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
@@ -375,7 +371,6 @@ const EmployeesPage = () => {
                     </div>
                   </div>
 
-                  {/* Pagination */}
                   {totalPages > 1 && (
                     <div className="flex items-center justify-between mt-6">
                       <div className="flex-1 flex justify-between sm:hidden">
@@ -450,7 +445,6 @@ const EmployeesPage = () => {
                               </svg>
                             </button>
 
-                            {/* Page Numbers */}
                             {[...Array(totalPages)].map((_, index) => {
                               const pageNumber = index + 1;
                               return (

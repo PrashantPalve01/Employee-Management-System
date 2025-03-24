@@ -15,6 +15,10 @@ app.use(express.json());
 // MongoDB Connection
 connectDB();
 
+app.use("/", (req, res) => {
+  res.json({ message: "API is working fine.." });
+});
+
 // Routes
 app.use("/auth", authRoutes);
 app.use("/employees", employeeRoutes);
