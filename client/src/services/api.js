@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_BASE_URL || "http://localhost:5000";
+const API_URL =
+  import.meta.env.VITE_BASE_URL ||
+  "https://employee-management-system-backend-v15m.onrender.com";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -39,7 +41,6 @@ export const employeeService = {
     return api.get(`/employees?${queryParams}`);
   },
 
-  // Rest of the service methods remain the same
   getEmployee: (id) => {
     return api.get(`/employees/${id}`);
   },

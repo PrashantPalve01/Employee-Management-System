@@ -14,12 +14,10 @@ import AddEmployeePage from "./pages/AddEmployeePage";
 import EmployeeDetailsPage from "./pages/EmployeeDetailsPage";
 import Header from "./components/common/Header";
 
-// Auth check with Redux
 const isAuthenticated = () => {
   return localStorage.getItem("token") !== null;
 };
 
-// Layout component with Header
 const AppLayout = () => {
   return (
     <>
@@ -29,7 +27,6 @@ const AppLayout = () => {
   );
 };
 
-// Protected Route component
 const ProtectedRoute = ({ children }) => {
   if (!isAuthenticated()) {
     return <Navigate to="/login" />;
@@ -41,12 +38,10 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        {/* Public routes */}
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
 
-        {/* Protected routes with Header */}
         <Route element={<AppLayout />}>
           <Route
             path="/dashboard"
