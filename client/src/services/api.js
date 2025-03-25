@@ -21,10 +21,25 @@ api.interceptors.request.use(
 );
 
 export const employeeService = {
-  getEmployees: (page = 1, limit = 10, search = "") => {
-    return api.get(`/employees?page=${page}&limit=${limit}&search=${search}`);
+  getEmployees: (
+    page = 1,
+    limit = 10,
+    search = "",
+    department = "",
+    status = ""
+  ) => {
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      ...(search && { search }),
+      ...(department && { department }),
+      ...(status && { status }),
+    });
+
+    return api.get(`/employees?${queryParams}`);
   },
 
+  // Rest of the service methods remain the same
   getEmployee: (id) => {
     return api.get(`/employees/${id}`);
   },
@@ -33,7 +48,9 @@ export const employeeService = {
     const formData = new FormData();
 
     Object.keys(employeeData).forEach((key) => {
-      if (key !== "profileImage") {
+      if (key === "address" || key === "emergencyContact") {
+        formData.append(key, JSON.stringify(employeeData[key]));
+      } else if (key !== "profileImage") {
         formData.append(key, employeeData[key]);
       }
     });
@@ -53,7 +70,9 @@ export const employeeService = {
     const formData = new FormData();
 
     Object.keys(employeeData).forEach((key) => {
-      if (key !== "profileImage") {
+      if (key === "address" || key === "emergencyContact") {
+        formData.append(key, JSON.stringify(employeeData[key]));
+      } else if (key !== "profileImage") {
         formData.append(key, employeeData[key]);
       }
     });

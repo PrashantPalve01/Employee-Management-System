@@ -2,224 +2,251 @@ const Employee = require("../models/Employee");
 const { cloudinary } = require("../config/cloudinary.js");
 
 exports.getEmployees = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const skipIndex = (page - 1) * limit;
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skipIndex = (page - 1) * limit;
 
-  const searchQuery = {};
+    const searchQuery = {
+      createdBy: req.user.id,
+    };
 
-  if (req.query.search) {
-    searchQuery.$text = { $search: req.query.search };
+    if (req.query.search) {
+      searchQuery.$text = { $search: req.query.search };
+    }
+
+    if (req.query.department) {
+      searchQuery.department = req.query.department;
+    }
+
+    if (req.query.status) {
+      searchQuery.status = req.query.status;
+    }
+
+    const totalEmployees = await Employee.countDocuments(searchQuery);
+    const employees = await Employee.find(searchQuery)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip(skipIndex);
+
+    res.status(200).json({
+      success: true,
+      count: employees.length,
+      totalEmployees,
+      totalPages: Math.ceil(totalEmployees / limit),
+      currentPage: page,
+      data: employees,
+    });
+  } catch (error) {
+    console.error("Error in getEmployees:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching employees",
+      error: error.message,
+    });
   }
-
-  if (req.query.department) {
-    searchQuery.department = req.query.department;
-  }
-
-  if (req.query.status) {
-    searchQuery.status = req.query.status;
-  }
-
-  // Only fetch employees created by the current user if not admin
-  if (req.user.role !== "admin") {
-    searchQuery.createdBy = req.user.id;
-  }
-
-  const totalEmployees = await Employee.countDocuments(searchQuery);
-  const employees = await Employee.find(searchQuery)
-    .sort({ createdAt: -1 })
-    .limit(limit)
-    .skip(skipIndex);
-
-  res.status(200).json({
-    success: true,
-    count: employees.length,
-    totalEmployees,
-    totalPages: Math.ceil(totalEmployees / limit),
-    currentPage: page,
-    data: employees,
-  });
 };
 
 exports.getEmployeeById = async (req, res) => {
-  const employee = await Employee.findById(req.params.id);
+  try {
+    const employee = await Employee.findOne({
+      _id: req.params.id,
+      createdBy: req.user.id,
+    });
 
-  if (!employee) {
-    return res.status(404).json({
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found or you do not have permission",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: employee,
+    });
+  } catch (error) {
+    console.error("Error in getEmployeeById:", error);
+    res.status(500).json({
       success: false,
-      message: "Employee not found",
+      message: "Server error while fetching employee",
+      error: error.message,
     });
   }
-
-  if (
-    req.user.role !== "admin" &&
-    employee.createdBy.toString() !== req.user.id
-  ) {
-    return res.status(403).json({
-      success: false,
-      message: "You do not have permission to view this employee",
-    });
-  }
-
-  res.status(200).json({
-    success: true,
-    data: employee,
-  });
 };
 
 exports.createEmployee = async (req, res) => {
-  const {
-    name,
-    email,
-    phone,
-    position,
-    department,
-    hireDate,
-    salary,
-    address,
-    status,
-    emergencyContact,
-  } = req.body;
+  try {
+    const address = req.body.address
+      ? typeof req.body.address === "string"
+        ? JSON.parse(req.body.address)
+        : req.body.address
+      : {};
 
-  let profileImage = {
-    public_id: "employees/default",
-    url: "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg",
-  };
+    const emergencyContact = req.body.emergencyContact
+      ? typeof req.body.emergencyContact === "string"
+        ? JSON.parse(req.body.emergencyContact)
+        : req.body.emergencyContact
+      : {};
 
-  if (req.file) {
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "employees",
-      width: 250,
-      height: 250,
-      crop: "fill",
+    let profileImage = {
+      public_id: "employees/default",
+      url: "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg",
+    };
+
+    if (req.file) {
+      const pathParts = req.file.path.split("/");
+      const publicIdWithExtension = pathParts[pathParts.length - 1];
+      const publicId = publicIdWithExtension.split(".")[0];
+
+      profileImage = {
+        public_id: `employee_profiles/${publicId}`,
+        url: req.file.path,
+      };
+    }
+
+    const employee = await Employee.create({
+      name: req.body.name,
+      email: req.body.email,
+      phone: req.body.phone,
+      position: req.body.position,
+      department: req.body.department,
+      hireDate: req.body.hireDate || Date.now(),
+      salary: req.body.salary || null,
+      profileImage,
+      address,
+      status: req.body.status,
+      emergencyContact,
+      createdBy: req.user.id,
     });
 
-    profileImage = {
-      public_id: result.public_id,
-      url: result.secure_url,
-    };
+    res.status(201).json({
+      success: true,
+      data: employee,
+    });
+  } catch (error) {
+    console.error("Detailed Error in createEmployee:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while creating employee",
+      error: error.message,
+    });
   }
-
-  const employee = await Employee.create({
-    name,
-    email,
-    phone,
-    position,
-    department,
-    hireDate: hireDate || Date.now(),
-    salary,
-    profileImage,
-    address,
-    status,
-    emergencyContact,
-    createdBy: req.user.id,
-  });
-
-  res.status(201).json({
-    success: true,
-    data: employee,
-  });
 };
 
 exports.updateEmployee = async (req, res) => {
-  let employee = await Employee.findById(req.params.id);
+  try {
+    let employee = await Employee.findOne({
+      _id: req.params.id,
+      createdBy: req.user.id, // Ensure the employee belongs to the current user
+    });
 
-  if (!employee) {
-    return res.status(404).json({
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found or you do not have permission",
+      });
+    }
+
+    // Prepare update data
+    const updateData = { ...req.body };
+
+    // Handle nested objects (address and emergencyContact)
+    if (req.body.address) {
+      updateData.address =
+        typeof req.body.address === "string"
+          ? JSON.parse(req.body.address)
+          : req.body.address;
+    }
+
+    if (req.body.emergencyContact) {
+      updateData.emergencyContact =
+        typeof req.body.emergencyContact === "string"
+          ? JSON.parse(req.body.emergencyContact)
+          : req.body.emergencyContact;
+    }
+
+    // Handle profile image upload
+    if (req.file) {
+      try {
+        // Delete existing image from Cloudinary if it exists
+        if (employee.profileImage && employee.profileImage.public_id) {
+          await cloudinary.uploader.destroy(employee.profileImage.public_id);
+        }
+
+        // Upload new image
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "employees",
+          width: 250,
+          height: 250,
+          crop: "fill",
+        });
+
+        // Update profileImage in the update data
+        updateData.profileImage = {
+          public_id: result.public_id,
+          url: result.secure_url,
+        };
+      } catch (uploadError) {
+        console.error("Cloudinary upload error:", uploadError);
+        return res.status(500).json({
+          success: false,
+          message: "Error uploading profile image",
+          error: uploadError.message,
+        });
+      }
+    }
+
+    // Perform the update
+    employee = await Employee.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: employee,
+    });
+  } catch (error) {
+    console.error("Error in updateEmployee:", error);
+    res.status(500).json({
       success: false,
-      message: "Employee not found",
+      message: "Server error while updating employee",
+      error: error.message,
     });
   }
+};
 
-  if (
-    req.user.role !== "admin" &&
-    employee.createdBy.toString() !== req.user.id
-  ) {
-    return res.status(403).json({
-      success: false,
-      message: "You do not have permission to update this employee",
+exports.deleteEmployee = async (req, res) => {
+  try {
+    const employee = await Employee.findOne({
+      _id: req.params.id,
+      createdBy: req.user.id, // Ensure the employee belongs to the current user
     });
-  }
 
-  const {
-    name,
-    email,
-    phone,
-    position,
-    department,
-    hireDate,
-    salary,
-    address,
-    status,
-    emergencyContact,
-  } = req.body;
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found or you do not have permission",
+      });
+    }
 
-  if (req.file) {
     if (employee.profileImage && employee.profileImage.public_id) {
       await cloudinary.uploader.destroy(employee.profileImage.public_id);
     }
 
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "employees",
-      width: 250,
-      height: 250,
-      crop: "fill",
+    await employee.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: "Employee deleted successfully",
     });
-
-    req.body.profileImage = {
-      public_id: result.public_id,
-      url: result.secure_url,
-    };
-  }
-
-  employee = await Employee.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-
-  res.status(200).json({
-    success: true,
-    data: employee,
-  });
-};
-
-exports.deleteEmployee = async (req, res) => {
-  const employee = await Employee.findById(req.params.id);
-
-  if (!employee) {
-    return res.status(404).json({
+  } catch (error) {
+    console.error("Error in deleteEmployee:", error);
+    res.status(500).json({
       success: false,
-      message: "Employee not found",
+      message: "Server error while deleting employee",
+      error: error.message,
     });
   }
-
-  if (
-    req.user.role !== "admin" &&
-    employee.createdBy.toString() !== req.user.id
-  ) {
-    return res.status(403).json({
-      success: false,
-      message: "You do not have permission to delete this employee",
-    });
-  }
-
-  if (employee.profileImage && employee.profileImage.public_id) {
-    await cloudinary.uploader.destroy(employee.profileImage.public_id);
-  }
-
-  await employee.deleteOne();
-
-  res.status(200).json({
-    success: true,
-    message: "Employee deleted successfully",
-  });
-};
-
-exports.getDepartments = async (req, res) => {
-  const departments = await Employee.distinct("department");
-
-  res.status(200).json({
-    success: true,
-    data: departments,
-  });
 };

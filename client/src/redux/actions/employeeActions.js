@@ -1,4 +1,3 @@
-import axios from "axios";
 import {
   GET_EMPLOYEES_REQUEST,
   GET_EMPLOYEES_SUCCESS,
@@ -15,9 +14,6 @@ import {
   DELETE_EMPLOYEE_REQUEST,
   DELETE_EMPLOYEE_SUCCESS,
   DELETE_EMPLOYEE_FAIL,
-  UPLOAD_IMAGE_REQUEST,
-  UPLOAD_IMAGE_SUCCESS,
-  UPLOAD_IMAGE_FAIL,
   SEARCH_EMPLOYEES,
   SET_CURRENT_PAGE,
   CLEAR_ERRORS,
@@ -25,11 +21,17 @@ import {
 import { employeeService } from "../../services/api";
 
 export const getEmployees =
-  (page = 1, limit = 10, search = "") =>
+  (page = 1, limit = 10, search = "", department = "", status = "") =>
   async (dispatch) => {
     try {
       dispatch({ type: GET_EMPLOYEES_REQUEST });
-      const { data } = await employeeService.getEmployees(page, limit, search);
+      const { data } = await employeeService.getEmployees(
+        page,
+        limit,
+        search,
+        department,
+        status
+      );
 
       dispatch({
         type: GET_EMPLOYEES_SUCCESS,
@@ -65,9 +67,7 @@ export const getEmployeeById = (id) => async (dispatch) => {
 export const createEmployee = (employeeData) => async (dispatch) => {
   try {
     dispatch({ type: CREATE_EMPLOYEE_REQUEST });
-
     const { data } = await employeeService.createEmployee(employeeData);
-
     dispatch({
       type: CREATE_EMPLOYEE_SUCCESS,
       payload: data.data,
@@ -87,27 +87,7 @@ export const updateEmployee = (id, employeeData) => async (dispatch) => {
   try {
     dispatch({ type: UPDATE_EMPLOYEE_REQUEST });
 
-    const formData = new FormData();
-
-    Object.keys(employeeData).forEach((key) => {
-      if (key === "profileImage" && employeeData[key] instanceof File) {
-        formData.append(key, employeeData[key]);
-      } else if (key === "address" || key === "emergencyContact") {
-        Object.keys(employeeData[key]).forEach((nestedKey) => {
-          formData.append(`${key}[${nestedKey}]`, employeeData[key][nestedKey]);
-        });
-      } else {
-        formData.append(key, employeeData[key]);
-      }
-    });
-
-    const config = {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    };
-
-    const { data } = await axios.put(`/api/employees/${id}`, formData, config);
+    const { data } = await employeeService.updateEmployee(id, employeeData);
 
     dispatch({
       type: UPDATE_EMPLOYEE_SUCCESS,
@@ -139,40 +119,6 @@ export const deleteEmployee = (id) => async (dispatch) => {
       type: DELETE_EMPLOYEE_FAIL,
       payload: error.response?.data?.message || "Failed to delete employee",
     });
-  }
-};
-
-export const uploadImage = (file) => async (dispatch) => {
-  try {
-    dispatch({ type: UPLOAD_IMAGE_REQUEST });
-
-    const formData = new FormData();
-    formData.append("profileImage", file);
-
-    const config = {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    };
-
-    const { data } = await axios.post(
-      "/api/employees/upload",
-      formData,
-      config
-    );
-
-    dispatch({
-      type: UPLOAD_IMAGE_SUCCESS,
-      payload: data,
-    });
-
-    return data; // Return image data
-  } catch (error) {
-    dispatch({
-      type: UPLOAD_IMAGE_FAIL,
-      payload: error.response?.data?.message || "Failed to upload image",
-    });
-    throw error;
   }
 };
 

@@ -65,7 +65,7 @@ const App = () => {
             }
           />
           <Route
-            path="/employees/add"
+            path="/employees/add-edit"
             element={
               <ProtectedRoute>
                 <AddEmployeePage />
@@ -80,15 +80,14 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-          {/* Uncomment when you have the EditEmployeePage component
           <Route
-            path="/employees/edit/:id"
+            path="/employees/add-edit/:id"
             element={
               <ProtectedRoute>
-                <EditEmployeePage />
+                <AddEmployeePage />
               </ProtectedRoute>
             }
-          /> */}
+          />
         </Route>
       </Routes>
     </Router>

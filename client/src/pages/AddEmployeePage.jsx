@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { createEmployee, clearErrors } from "../redux/actions/employeeActions";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  createEmployee,
+  updateEmployee,
+  clearErrors,
+  getEmployeeById,
+} from "../redux/actions/employeeActions";
 
-const AddEmployeePage = () => {
+const EmployeeFormPage = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -12,31 +17,83 @@ const AddEmployeePage = () => {
     department: "",
     hireDate: "",
     salary: "",
-    street: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    country: "",
+    address: {
+      street: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "",
+    },
     status: "active",
-    emergencyContactName: "",
-    emergencyContactRelationship: "",
-    emergencyContactPhone: "",
+    emergencyContact: {
+      name: "",
+      relationship: "",
+      phone: "",
+    },
   });
 
   const [profileImage, setProfileImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [errors, setErrors] = useState({});
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { id } = useParams();
 
-  const { loading, error, success } = useSelector((state) => state.employee);
+  const {
+    loading,
+    error,
+    success,
+    employee: currentEmployee,
+  } = useSelector((state) => state.employee);
+
+  useEffect(() => {
+    if (id) {
+      setIsEditMode(true);
+      dispatch(getEmployeeById(id));
+    }
+  }, [dispatch, id]);
+
+  useEffect(() => {
+    if (isEditMode && currentEmployee) {
+      setFormData({
+        name: currentEmployee.name || "",
+        email: currentEmployee.email || "",
+        phone: currentEmployee.phone || "",
+        position: currentEmployee.position || "",
+        department: currentEmployee.department || "",
+        hireDate: currentEmployee.hireDate || "",
+        salary: currentEmployee.salary || "",
+        status: currentEmployee.status || "active",
+        address: {
+          street: currentEmployee.address?.street || "",
+          city: currentEmployee.address?.city || "",
+          state: currentEmployee.address?.state || "",
+          zipCode: currentEmployee.address?.zipCode || "",
+          country: currentEmployee.address?.country || "",
+        },
+        emergencyContact: {
+          name: currentEmployee.emergencyContact?.name || "",
+          relationship: currentEmployee.emergencyContact?.relationship || "",
+          phone: currentEmployee.emergencyContact?.phone || "",
+        },
+      });
+
+      if (currentEmployee.profileImage) {
+        setPreviewImage(
+          currentEmployee.profileImage.url ||
+            currentEmployee.profileImage.path ||
+            currentEmployee.profileImage
+        );
+      }
+    }
+  }, [currentEmployee, isEditMode]);
 
   useEffect(() => {
     if (success) {
       navigate("/employees");
     }
-
     return () => {
       dispatch(clearErrors());
     };
@@ -44,16 +101,28 @@ const AddEmployeePage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+
+    if (name.startsWith("address.") || name.startsWith("emergencyContact.")) {
+      const [parent, child] = name.split(".");
+      setFormData((prev) => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
 
     if (errors[name]) {
-      setErrors({
-        ...errors,
+      setErrors((prev) => ({
+        ...prev,
         [name]: null,
-      });
+      }));
     }
   };
 
@@ -99,30 +168,15 @@ const AddEmployeePage = () => {
 
     if (validateForm()) {
       const employeeData = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        position: formData.position,
-        department: formData.department,
-        hireDate: formData.hireDate,
-        salary: formData.salary,
-        status: formData.status,
+        ...formData,
         profileImage: profileImage,
-        address: {
-          street: formData.street,
-          city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
-          country: formData.country,
-        },
-        emergencyContact: {
-          name: formData.emergencyContactName,
-          relationship: formData.emergencyContactRelationship,
-          phone: formData.emergencyContactPhone,
-        },
       };
 
-      dispatch(createEmployee(employeeData));
+      if (isEditMode) {
+        dispatch(updateEmployee(id, employeeData));
+      } else {
+        dispatch(createEmployee(employeeData));
+      }
     }
   };
 
@@ -130,21 +184,23 @@ const AddEmployeePage = () => {
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden">
         <div className="bg-blue-600 text-white p-6">
-          <h2 className="text-3xl font-bold">Add New Employee</h2>
+          <h2 className="text-3xl font-bold">
+            {isEditMode ? "Edit Employee" : "Add New Employee"}
+          </h2>
           <p className="text-blue-100">
-            Complete all sections to create an employee profile
+            {isEditMode
+              ? "Update employee profile details"
+              : "Complete all sections to create an employee profile"}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-8">
-          {/* Error Handling */}
           {error && (
             <div className="bg-red-50 border-l-4 border-red-500 p-4">
               <p className="text-red-700">{error}</p>
             </div>
           )}
 
-          {/* Profile Image Section */}
           <div className="flex flex-col items-center mb-8">
             <label
               htmlFor="profileImageUpload"
@@ -204,7 +260,6 @@ const AddEmployeePage = () => {
             </label>
           </div>
 
-          {/* Basic Information Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-gray-700 font-semibold mb-2">
@@ -259,7 +314,6 @@ const AddEmployeePage = () => {
             </div>
           </div>
 
-          {/* Professional Information */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
             <div>
               <label className="block text-gray-700 font-semibold mb-2">
@@ -313,7 +367,6 @@ const AddEmployeePage = () => {
             </div>
           </div>
 
-          {/* Salary and Status */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
             <div>
               <label className="block text-gray-700 font-semibold mb-2">
@@ -351,7 +404,6 @@ const AddEmployeePage = () => {
             </div>
           </div>
 
-          {/* Address Section */}
           <div className="mt-8">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
               Address Details
@@ -363,8 +415,8 @@ const AddEmployeePage = () => {
                 </label>
                 <input
                   type="text"
-                  name="street"
-                  value={formData.street}
+                  name="address.street"
+                  value={formData.address.street}
                   onChange={handleChange}
                   className="w-full p-3 border border-gray-300 rounded-lg"
                   placeholder="Street address"
@@ -376,8 +428,8 @@ const AddEmployeePage = () => {
                 </label>
                 <input
                   type="text"
-                  name="city"
-                  value={formData.city}
+                  name="address.city"
+                  value={formData.address.city}
                   onChange={handleChange}
                   className="w-full p-3 border border-gray-300 rounded-lg"
                   placeholder="City"
@@ -389,8 +441,8 @@ const AddEmployeePage = () => {
                 </label>
                 <input
                   type="text"
-                  name="state"
-                  value={formData.state}
+                  name="address.state"
+                  value={formData.address.state}
                   onChange={handleChange}
                   className="w-full p-3 border border-gray-300 rounded-lg"
                   placeholder="State"
@@ -402,8 +454,8 @@ const AddEmployeePage = () => {
                 </label>
                 <input
                   type="text"
-                  name="zipCode"
-                  value={formData.zipCode}
+                  name="address.zipCode"
+                  value={formData.address.zipCode}
                   onChange={handleChange}
                   className="w-full p-3 border border-gray-300 rounded-lg"
                   placeholder="Zip code"
@@ -415,8 +467,8 @@ const AddEmployeePage = () => {
                 </label>
                 <input
                   type="text"
-                  name="country"
-                  value={formData.country}
+                  name="address.country"
+                  value={formData.address.country}
                   onChange={handleChange}
                   className="w-full p-3 border border-gray-300 rounded-lg"
                   placeholder="Country"
@@ -425,7 +477,6 @@ const AddEmployeePage = () => {
             </div>
           </div>
 
-          {/* Emergency Contact Section */}
           <div className="mt-8">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
               Emergency Contact
@@ -437,8 +488,8 @@ const AddEmployeePage = () => {
                 </label>
                 <input
                   type="text"
-                  name="emergencyContactName"
-                  value={formData.emergencyContactName}
+                  name="emergencyContact.name"
+                  value={formData.emergencyContact.name}
                   onChange={handleChange}
                   className="w-full p-3 border border-gray-300 rounded-lg"
                   placeholder="Emergency contact name"
@@ -450,8 +501,8 @@ const AddEmployeePage = () => {
                 </label>
                 <input
                   type="text"
-                  name="emergencyContactRelationship"
-                  value={formData.emergencyContactRelationship}
+                  name="emergencyContact.relationship"
+                  value={formData.emergencyContact.relationship}
                   onChange={handleChange}
                   className="w-full p-3 border border-gray-300 rounded-lg"
                   placeholder="Relationship"
@@ -463,8 +514,8 @@ const AddEmployeePage = () => {
                 </label>
                 <input
                   type="text"
-                  name="emergencyContactPhone"
-                  value={formData.emergencyContactPhone}
+                  name="emergencyContact.phone"
+                  value={formData.emergencyContact.phone}
                   onChange={handleChange}
                   className="w-full p-3 border border-gray-300 rounded-lg"
                   placeholder="Emergency contact phone"
@@ -473,7 +524,6 @@ const AddEmployeePage = () => {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex justify-end space-x-4 mt-8">
             <button
               type="button"
@@ -504,7 +554,13 @@ const AddEmployeePage = () => {
                   ></path>
                 </svg>
               ) : null}
-              {loading ? "Saving..." : "Save Employee"}
+              {loading
+                ? isEditMode
+                  ? "Updating..."
+                  : "Saving..."
+                : isEditMode
+                ? "Update Employee"
+                : "Save Employee"}
             </button>
           </div>
         </form>
@@ -513,4 +569,4 @@ const AddEmployeePage = () => {
   );
 };
 
-export default AddEmployeePage;
+export default EmployeeFormPage;

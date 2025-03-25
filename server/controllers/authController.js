@@ -29,6 +29,7 @@ const regrister = async (req, res) => {
       token,
       user: {
         id: user._id,
+        email: user.email,
         name: user.name,
         role: user.role,
       },
@@ -64,6 +65,7 @@ const login = async (req, res) => {
         id: user._id,
         email: user.email,
         role: user.role,
+        name: user.name,
       },
     });
   } catch (error) {
